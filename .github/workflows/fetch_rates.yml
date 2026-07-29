@@ -1,0 +1,83 @@
+# Drop this file into:  .github/workflows/fetch_rates.yml
+# in your kalqo-market-data GitHub repo.
+#
+# Also create an empty file at:  data/rates.json  (content: {})
+#
+# The app reads:
+# https://raw.githubusercontent.com/YOUR_USERNAME/kalqo-market-data/main/data/rates.json
+
+name: Fetch Market Rates
+
+on:
+  schedule:
+    # 10:00 AM IST Mon–Fri  (market open snapshot)
+    - cron: '30 4 * * 1-5'
+    # 4:00 PM IST Mon–Fri  (market close snapshot)
+    - cron: '30 10 * * 1-5'
+  workflow_dispatch: # allow manual trigger from GitHub UI
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch Yahoo Finance rates
+        run: |
+          # Step 1: Get Yahoo consent cookie
+          COOKIE=$(curl -si "https://fc.yahoo.com/" \
+            -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0.0.0 Safari/537.36" \
+            | grep -i "^set-cookie:" | head -1 | sed 's/[Ss]et-[Cc]ookie: //' | cut -d';' -f1)
+
+          echo "Cookie: $COOKIE"
+
+          # Step 2: Get crumb token
+          CRUMB=$(curl -s "https://query2.finance.yahoo.com/v1/test/getcrumb" \
+            -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124.0.0.0" \
+            -H "Cookie: $COOKIE")
+
+          echo "Crumb: $CRUMB"
+
+          # Step 3: Fetch Gold (GC=F), Silver (SI=F), USD/INR (USDINR=X)
+          SYMBOLS="GC%3DF%2CSI%3DF%2CUSDINR%3DX"
+          FIELDS="regularMarketPrice%2CregularMarketChange%2CregularMarketChangePercent%2CshortName"
+          ENCODED_CRUMB=$(python3 -c "import urllib.parse; print(urllib.parse.quote('$CRUMB'))")
+
+          curl -s \
+            "https://query2.finance.yahoo.com/v8/finance/quote?symbols=${SYMBOLS}&fields=${FIELDS}&crumb=${ENCODED_CRUMB}" \
+            -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124.0.0.0" \
+            -H "Cookie: $COOKIE" \
+            -H "Accept: application/json" \
+            -o data/rates_raw.json
+
+          # Step 4: Inject fetch timestamp and write final file
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          python3 -c "
+          import json, sys
+          with open('data/rates_raw.json') as f:
+              data = json.load(f)
+          data['fetchedAt'] = '$TIMESTAMP'
+          # Validate we got actual quotes before writing
+          quotes = data.get('quoteResponse', {}).get('result', [])
+          if not quotes:
+              print('ERROR: No quotes returned', file=sys.stderr)
+              sys.exit(1)
+          with open('data/rates.json', 'w') as f:
+              json.dump(data, f)
+          print(f'OK: {len(quotes)} quotes fetched at $TIMESTAMP')
+          "
+
+          rm -f data/rates_raw.json
+
+      - name: Commit and push
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/rates.json
+          # Only commit if file changed (skip if Yahoo returned same data)
+          git diff --staged --quiet && echo "No changes" || \
+            git commit -m "rates: $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git push
