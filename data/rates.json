@@ -9,17 +9,17 @@
       },
       {
         "symbol": "SI=F",
-        "regularMarketPrice": 67.16,
-        "regularMarketChange": 2.437,
-        "regularMarketChangePercent": 3.7653
+        "regularMarketPrice": 67.63,
+        "regularMarketChange": 2.907,
+        "regularMarketChangePercent": 4.4914
       },
       {
         "symbol": "USDINR=X",
-        "regularMarketPrice": 94.475,
-        "regularMarketChange": -0.4802,
-        "regularMarketChangePercent": -0.5057
+        "regularMarketPrice": 94.48,
+        "regularMarketChange": -0.0077,
+        "regularMarketChangePercent": -0.0081
       }
     ]
   },
-  "fetchedAt": "2026-09-03T14:41:31Z"
+  "fetchedAt": "2026-09-04T08:55:50Z"
 }
