@@ -3,23 +3,23 @@
     "result": [
       {
         "symbol": "GC=F",
-        "regularMarketPrice": 4068.1001,
-        "regularMarketChange": -45.3999,
-        "regularMarketChangePercent": -1.1037
+        "regularMarketPrice": 4129.7998,
+        "regularMarketChange": 54.8999,
+        "regularMarketChangePercent": 1.3473
       },
       {
         "symbol": "SI=F",
-        "regularMarketPrice": 51.935,
-        "regularMarketChange": -0.298,
-        "regularMarketChangePercent": -0.5705
+        "regularMarketPrice": 52.755,
+        "regularMarketChange": 0.952,
+        "regularMarketChangePercent": 1.8377
       },
       {
         "symbol": "USDINR=X",
-        "regularMarketPrice": 93.895,
-        "regularMarketChange": -0.6204,
-        "regularMarketChangePercent": -0.6564
+        "regularMarketPrice": 93.9275,
+        "regularMarketChange": -0.5314,
+        "regularMarketChangePercent": -0.5626
       }
     ]
   },
-  "fetchedAt": "2026-11-06T17:38:03Z"
+  "fetchedAt": "2026-11-09T13:07:40Z"
 }
